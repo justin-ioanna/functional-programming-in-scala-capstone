@@ -1,1 +1,1 @@
-# functional-programming-in-scala-capstone
+# Functional Programming in Scala Capstone
