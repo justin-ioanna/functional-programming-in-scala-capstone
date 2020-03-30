@@ -1,4 +1,4 @@
-# sbt files
+f# sbt files
 target/
 
 # Editor files
@@ -8,6 +8,9 @@ target/
 .metals/
 metals.sbt
 .bloop/
+
+# IntelliJ
+.idea
 
 # Data files
 src/main/resources/
