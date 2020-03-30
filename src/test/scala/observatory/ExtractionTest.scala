@@ -78,7 +78,7 @@ trait ExtractionTest extends MilestoneSuite {
     )
     assertEquals(
       expected,
-      locateTemperatures(2015, "/testStations.csv", "/testTemperatures.csv").toList.sortBy(_._3)
+      locateTemperatures(2015, "/test/stations.csv", "/test/2015.csv").toList.sortBy(_._3)
     )
   }
 

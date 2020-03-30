@@ -13,4 +13,5 @@ metals.sbt
 .idea
 
 # Data files
-src/main/resources/
+src/main/resources/*
+!src/main/resources/test
