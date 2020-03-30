@@ -1,5 +1,29 @@
 package observatory
 
+import java.time.LocalDate
+
+/**
+  * Introduced in Week 1. Compound key that uniquely identifies a station.
+  * @param stn Station identifier.
+  * @param wban Weather Bureau Army Navy identifier.
+  */
+case class Station(stn: Option[String], wban: Option[String])
+
+/**
+  * Introduced in Week 1. Represents a parsed record from a stations file.
+  * @param station Compound key to identify a station.
+  * @param location Location on the globe.
+  */
+case class LocationRecord(station: Station, location: Option[Location]) extends Serializable
+
+/**
+  * Introduced in Week 1. Represents a parsed record from a temperatures file.
+  * @param station Compound key to identify a station.
+  * @param date Date the temperate was recorded on.
+  * @param temperature in Celsius.
+  */
+case class TemperatureRecord(station: Station, date: LocalDate, temperature: Option[Temperature]) extends Serializable
+
 /**
   * Introduced in Week 1. Represents a location on the globe.
   * @param lat Degrees of latitude, -90 ≤ lat ≤ 90
@@ -39,4 +63,3 @@ case class CellPoint(x: Double, y: Double)
   * @param blue Level of blue, 0 ≤ blue ≤ 255
   */
 case class Color(red: Int, green: Int, blue: Int)
-
