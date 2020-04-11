@@ -1,11 +1,58 @@
 package observatory
 
-import com.sksamuel.scrimage.{Image, Pixel}
+import com.sksamuel.scrimage.Image
+
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.rdd.RDD
 
 /**
   * 2nd milestone: basic visualization
   */
 object Visualization extends VisualizationInterface {
+
+  import math.{abs, acos, cos, sin}
+
+  val conf: SparkConf = new SparkConf()
+    .set("spark.driver.host", "localhost")
+    .setMaster("local")
+    .setAppName("Visualization")
+
+  val sc: SparkContext = new SparkContext(conf)
+
+  val EarthRadius = 6378100
+
+  private def toRadians(loc: Location): LocationRad = LocationRad(loc.lat * (math.Pi / 180), loc.lon * (math.Pi / 180))
+
+  def greatCircleDistance(a: Location, b: Location): Distance = {
+
+    val (ar, br) = (toRadians(a), toRadians(b))
+
+    def isAntipodal: Boolean = a.lat == -b.lat && (a.lon == b.lon + 180 || a.lon == b.lon - 180)
+
+    val thetaRadians: Double = {
+      if (a == b) 0d
+      else if (isAntipodal) math.Pi
+      else acos(sin(ar.lat) * sin(br.lat) + cos(ar.lon) * cos(br.lon) * cos(abs(br.lon - ar.lon)))
+    }
+
+    thetaRadians * EarthRadius
+
+  }
+
+  def inverseDistanceWeighting(temperatureByDistance: RDD[(Distance, Temperature)], p: Double): Temperature = {
+
+    val closeLocations = temperatureByDistance.filter({case (distance, _) => distance < 1000 }).persist()
+
+    if (closeLocations.count() > 0) {
+      closeLocations.first()._2
+    } else {
+      val (numerator, denominator) = temperatureByDistance
+        .map({case (distance, temperature) => (math.pow(distance, p) * temperature, math.pow(distance, p))})
+        .reduce({case ((numAcc, num), (denomAcc, denom)) => (numAcc + num, denomAcc + denom)})
+      numerator / denominator
+    }
+
+  }
 
   /**
     * @param temperatures Known temperatures: pairs containing a location and the temperature at this location
@@ -13,8 +60,16 @@ object Visualization extends VisualizationInterface {
     * @return The predicted temperature at `location`
     */
   def predictTemperature(temperatures: Iterable[(Location, Temperature)], location: Location): Temperature = {
-    ???
+
+    val temperatureByDistance: RDD[(Distance, Temperature)] =
+      sc.parallelize(temperatures.toSeq)
+      .map({case (stationLocation, temperature) => (greatCircleDistance(stationLocation, location), temperature)})
+      .persist()
+
+    inverseDistanceWeighting(temperatureByDistance, 2)
+
   }
+
 
   /**
     * @param points Pairs containing a value and its associated color

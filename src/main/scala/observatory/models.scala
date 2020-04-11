@@ -32,6 +32,13 @@ case class TemperatureRecord(station: Station, date: LocalDate, temperature: Opt
 case class Location(lat: Double, lon: Double)
 
 /**
+  * Introduced in Week 2. Represents a location on the globe.
+  * @param lat Radians of latitude, -π/2 ≤ lat ≤ π/2
+  * @param lon Radians of latitude, -π ≤ lon ≤ π
+  */
+case class LocationRad(lat: Double, lon: Double)
+
+/**
   * Introduced in Week 3. Represents a tiled web map tile.
   * See https://en.wikipedia.org/wiki/Tiled_web_map
   * Based on http://wiki.openstreetmap.org/wiki/Slippy_map_tilenames

@@ -3,8 +3,7 @@ package observatory
 import java.time.LocalDate
 import scala.io.Source
 
-import org.apache.spark.SparkConf
-import org.apache.spark.SparkContext
+import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
 
 /**
