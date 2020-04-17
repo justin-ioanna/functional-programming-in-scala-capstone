@@ -14,12 +14,13 @@ object Visualization extends VisualizationInterface {
 
   val conf: SparkConf = new SparkConf()
     .set("spark.driver.host", "localhost")
+    .set("spark.driver.allowMultipleContexts", "true")
     .setMaster("local")
     .setAppName("Visualization")
 
   val sc: SparkContext = new SparkContext(conf)
 
-  val EarthRadius = 6378100
+  val EarthRadius = 6371000
 
   private def toRadians(loc: Location): LocationRad = LocationRad(loc.lat * (math.Pi / 180), loc.lon * (math.Pi / 180))
 
@@ -32,23 +33,23 @@ object Visualization extends VisualizationInterface {
     val thetaRadians: Double = {
       if (a == b) 0d
       else if (isAntipodal) math.Pi
-      else acos(sin(ar.lat) * sin(br.lat) + cos(ar.lon) * cos(br.lon) * cos(abs(br.lon - ar.lon)))
+      else acos((sin(ar.lat) * sin(br.lat)) + (cos(ar.lat) * cos(br.lat) * cos(abs(br.lon - ar.lon))))
     }
 
     thetaRadians * EarthRadius
 
   }
 
-  def inverseDistanceWeighting(temperatureByDistance: RDD[(Distance, Temperature)], p: Double): Temperature = {
-
-    val closeLocations = temperatureByDistance.filter({case (distance, _) => distance < 1000 }).persist()
+  private def inverseDistanceWeighting(temperatureByDistance: RDD[(Distance, Temperature)], power: Double): Temperature = {
+    val minimumDistance = 1000
+    val closeLocations = temperatureByDistance.filter({ case (distance, _) => distance < minimumDistance }).persist()
 
     if (closeLocations.count() > 0) {
       closeLocations.first()._2
     } else {
       val (numerator, denominator) = temperatureByDistance
-        .map({case (distance, temperature) => (math.pow(distance, p) * temperature, math.pow(distance, p))})
-        .reduce({case ((numAcc, num), (denomAcc, denom)) => (numAcc + num, denomAcc + denom)})
+        .map({ case (distance, temperature) => (math.pow(distance, power) * temperature, math.pow(distance, power)) })
+        .reduce({ case ((numAcc, denomAcc), (num, denom)) => (numAcc + num, denomAcc + denom) })
       numerator / denominator
     }
 
