@@ -13,6 +13,7 @@ object Extraction extends ExtractionInterface {
 
   val conf: SparkConf = new SparkConf()
     .set("spark.driver.host", "localhost")
+    .set("spark.driver.allowMultipleContexts", "true")
     .setMaster("local")
     .setAppName("Extraction")
 
