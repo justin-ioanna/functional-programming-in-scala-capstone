@@ -9,7 +9,10 @@ object Interaction2 extends Interaction2Interface {
     * @return The available layers of the application
     */
   def availableLayers: Seq[Layer] = {
-    ???
+    Seq(
+      Layer(LayerName.Temperatures, ColorScale.Temperatures, 1975 to 2015),
+      Layer(LayerName.Deviations, ColorScale.Deviations, 1975 to 2015)
+    )
   }
 
   /**
@@ -17,7 +20,7 @@ object Interaction2 extends Interaction2Interface {
     * @return A signal containing the year bounds corresponding to the selected layer
     */
   def yearBounds(selectedLayer: Signal[Layer]): Signal[Range] = {
-    ???
+    Signal(selectedLayer().bounds)
   }
 
   /**
@@ -29,7 +32,9 @@ object Interaction2 extends Interaction2Interface {
     *         in the `selectedLayer` bounds.
     */
   def yearSelection(selectedLayer: Signal[Layer], sliderValue: Signal[Year]): Signal[Year] = {
-    ???
+    val (availableYears, selectedYear) = (yearBounds(selectedLayer)(), sliderValue())
+    if (availableYears contains selectedYear) Signal(selectedYear)
+    else Signal(availableYears.minBy(year => math.abs(year - selectedYear)))
   }
 
   /**
@@ -38,8 +43,11 @@ object Interaction2 extends Interaction2Interface {
     * @return The URL pattern to retrieve tiles
     */
   def layerUrlPattern(selectedLayer: Signal[Layer], selectedYear: Signal[Year]): Signal[String] = {
-    ???
+    Signal(s"target/${selectedLayer().layerName.id}/${selectedYear()}/{z}/{x}-{y}.png")
   }
+
+  // target/temperatures/<year>/<zoom>/<x>-<y>.png
+  // target/deviations/<year>/<zoom>/<x>-<y>.png.
 
   /**
     * @param selectedLayer The selected layer
@@ -47,7 +55,7 @@ object Interaction2 extends Interaction2Interface {
     * @return The caption to show
     */
   def caption(selectedLayer: Signal[Layer], selectedYear: Signal[Year]): Signal[String] = {
-    ???
+    Signal(s"${selectedLayer().layerName} (${selectedYear()})")
   }
 
 }
@@ -75,3 +83,26 @@ object LayerName {
   */
 case class Layer(layerName: LayerName, colorScale: Seq[(Temperature, Color)], bounds: Range)
 
+object ColorScale {
+
+  val Temperatures: Seq[(Temperature, Color)] = Seq(
+    (60, Color(255, 255, 255)),
+    (32, Color(255, 0, 0)),
+    (12, Color(255, 255, 0)),
+    (0, Color(0, 255, 255)),
+    (-15, Color(0, 0, 255)),
+    (-27, Color(255, 0, 255)),
+    (-50, Color(33, 0, 107)),
+    (-60, Color(0, 0, 0)),
+  )
+
+  val Deviations: Seq[(Temperature, Color)] = Seq(
+    (7, Color(0, 0, 0)),
+    (4, Color(255, 0, 0)),
+    (2, Color(255, 255, 0)),
+    (0, Color(255, 255, 255)),
+    (-2, Color(0, 255, 255)),
+    (-7, Color(0, 0, 255))
+  )
+
+}
